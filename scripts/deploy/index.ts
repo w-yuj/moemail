@@ -164,14 +164,15 @@ const checkAndCreateDatabase = async () => {
   console.log(`🔍 Checking if database "${DATABASE_NAME}" exists...`);
 
   try {
-    const database = await getDatabase();
+    const existingDatabase = await getDatabase();
+    const database = existingDatabase || await createDatabase();
 
     if (!database || !database.uuid) {
       throw new Error('Database object is missing a valid UUID');
     }
 
     updateDatabaseConfig(database.uuid);
-    console.log(`✅ Database "${DATABASE_NAME}" already exists (ID: ${database.uuid})`);
+    console.log(`✅ Database "${DATABASE_NAME}" is ready (ID: ${database.uuid})`);
   } catch (error) {
     if (error instanceof NotFoundError) {
       console.log(`⚠️ Database not found, creating new database...`);

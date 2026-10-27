@@ -70,6 +70,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check types before deploying resources
+        run: pnpm exec tsc --noEmit
+
       - name: Run deploy script
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

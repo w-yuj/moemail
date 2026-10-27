@@ -1,4 +1,4 @@
-import Cloudflare, { NotFoundError } from "cloudflare";
+import Cloudflare from "cloudflare";
 import "dotenv/config";
 
 const CF_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID!;
@@ -56,7 +56,7 @@ export const getDatabase = async () => {
   for await (const database of client.d1.database.list({ account_id: CF_ACCOUNT_ID })) {
     if (database.name === DATABASE_NAME) return database;
   }
-  throw new NotFoundError(404, undefined, 'Database not found', undefined);
+  return undefined;
 };
 
 export const createDatabase = async () => {
