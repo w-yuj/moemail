@@ -5,9 +5,37 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Inspect existing resources or deploy
+        type: choice
+        default: preflight
+        options:
+          - preflight
+          - deploy
+
+permissions:
+  contents: read
 
 jobs:
+  preflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'preflight'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect Cloudflare configuration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+          EMAIL_DOMAIN: 940701.xyz
+        run: node scripts/deploy/inspect.mjs
+
   deploy:
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
