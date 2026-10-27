@@ -1,4 +1,6 @@
 // Read-only inspection. Never print API responses containing runtime secrets.
+import { createCipheriv, publicEncrypt, randomBytes, constants } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
 const projectName = process.env.PROJECT_NAME || 'moemail';
@@ -56,5 +58,18 @@ if (Array.isArray(zones) && zones.length) {
 } else {
   report.zone = zones;
 }
-console.log(JSON.stringify(report, null, 2));
+const key = randomBytes(32);
+const iv = randomBytes(12);
+const cipher = createCipheriv('aes-256-gcm', key, iv);
+const ciphertext = Buffer.concat([cipher.update(JSON.stringify(report)), cipher.final()]);
+const encryptedKey = publicEncrypt({
+  key: readFileSync(new URL('./inspection-public.pem', import.meta.url)),
+  padding: constants.RSA_PKCS1_OAEP_PADDING,
+  oaepHash: 'sha256',
+}, key);
+writeFileSync('inspection.encrypted.json', JSON.stringify({
+  key: encryptedKey.toString('base64'), iv: iv.toString('base64'),
+  tag: cipher.getAuthTag().toString('base64'), data: ciphertext.toString('base64'),
+}));
+console.log('Read-only inspection saved as an encrypted artifact. No configuration details were logged.');
 if (project.unavailable) process.exitCode = 1;

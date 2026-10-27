@@ -33,6 +33,13 @@ jobs:
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           EMAIL_DOMAIN: 940701.xyz
         run: node scripts/deploy/inspect.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cloudflare-inspection-encrypted
+          path: inspection.encrypted.json
+          retention-days: 1
+          if-no-files-found: error
 
   deploy:
     if: github.event_name == 'push' || inputs.operation == 'deploy'
