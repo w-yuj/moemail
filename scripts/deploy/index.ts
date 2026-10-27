@@ -337,7 +337,7 @@ const pushPagesSecret = () => {
     console.log(`📝 Found ${Object.keys(secrets).length} secrets to push:`, Object.keys(secrets).join(', '));
 
     // 使用临时文件推送secrets
-    execSync(`pnpm exec wrangler pages secret bulk ${runtimeEnvFile}`, { 
+    execSync(`pnpm exec wrangler pages secret bulk ${runtimeEnvFile}`, {
       stdio: "inherit" 
     });
 
@@ -484,9 +484,10 @@ const main = async () => {
     await checkAndCreateKVNamespace();
     await checkAndCreatePages();
     pushPagesSecret();
-    deployPages();
+    execSync("node scripts/deploy/configure-instance.mjs", { stdio: "inherit" });
     deployEmailWorker();
     deployCleanupWorker();
+    deployPages();
 
     console.log("🎉 Deployment completed successfully");
   } catch (error) {
