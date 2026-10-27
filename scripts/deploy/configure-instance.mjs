@@ -41,7 +41,7 @@ async function query(sql, params = []) {
 // Reserve ownership for the verified GitHub identity that owns this deployment.
 // Preserve an existing owner and never log account rows or credentials.
 if (owner) {
-  const owners = await query('SELECT ur.user_id FROM user_role ur JOIN role r ON r.id = ur.role_id WHERE r.name = ? LIMIT 1', ['EMPEROR']);
+  const owners = await query('SELECT ur.user_id FROM user_role ur JOIN role r ON r.id = ur.role_id WHERE r.name = ? LIMIT 1', ['emperor']);
   if (owners.length) {
     console.log('Existing application owner preserved.');
   } else {
@@ -52,9 +52,9 @@ if (owner) {
       await query('INSERT INTO user (id, name) VALUES (?, ?)', [userId, process.env.BOOTSTRAP_GITHUB_LOGIN]);
       await query('INSERT INTO account (userId, type, provider, providerAccountId) VALUES (?, ?, ?, ?)', [userId, 'oauth', 'github', owner]);
     }
-    const roles = await query('SELECT id FROM role WHERE name = ? LIMIT 1', ['EMPEROR']);
+    const roles = await query('SELECT id FROM role WHERE name = ? LIMIT 1', ['emperor']);
     const roleId = roles[0]?.id || randomUUID();
-    if (!roles.length) await query('INSERT INTO role (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)', [roleId, 'EMPEROR', 'Website owner', Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000)]);
+    if (!roles.length) await query('INSERT INTO role (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)', [roleId, 'emperor', 'Website owner', Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000)]);
     await query('INSERT OR IGNORE INTO user_role (user_id, role_id, created_at) VALUES (?, ?, ?)', [userId, roleId, Math.floor(Date.now() / 1000)]);
     console.log('Application ownership reserved for the deployment GitHub account.');
   }
