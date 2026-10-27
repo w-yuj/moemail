@@ -64,7 +64,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install Dependencies
@@ -85,10 +85,19 @@ jobs:
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
           AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-        run: pnpm dlx tsx scripts/deploy/index.ts
+        run: node scripts/deploy/run-private.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: moemail-deployment-encrypted
+          path: deployment.encrypted.json
+          retention-days: 1
+          if-no-files-found: ignore
 
       # Clean up
       - name: Post deployment cleanup
+        if: always()
         run: |
           rm -f .env*.*
           rm -f wrangler*.json

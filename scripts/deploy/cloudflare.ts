@@ -1,4 +1,4 @@
-import Cloudflare from "cloudflare";
+import Cloudflare, { NotFoundError } from "cloudflare";
 import "dotenv/config";
 
 const CF_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID!;
@@ -10,7 +10,7 @@ const KV_NAMESPACE_NAME = process.env.KV_NAMESPACE_NAME || "moemail-kv";
 const DATABASE_ID = process.env.DATABASE_ID;
 
 const client = new Cloudflare({
-  apiKey: CF_API_TOKEN,
+  apiToken: CF_API_TOKEN,
 });
 
 export const getPages = async () => {
@@ -53,11 +53,10 @@ export const getDatabase = async () => {
     }
   }
 
-  const database = await client.d1.database.get(DATABASE_NAME, {
-    account_id: CF_ACCOUNT_ID,
-  });
-
-  return database;
+  for await (const database of client.d1.database.list({ account_id: CF_ACCOUNT_ID })) {
+    if (database.name === DATABASE_NAME) return database;
+  }
+  throw new NotFoundError(404, undefined, 'Database not found', undefined);
 };
 
 export const createDatabase = async () => {
